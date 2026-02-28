@@ -19,10 +19,12 @@
     "google-auth-library": "^10.5.0"
   },
   "devDependencies": {
+    "@ai-sdk/anthropic": "^3.0.50",
     "@anthropic-ai/sdk": "latest",
     "@biomejs/biome": "^2.4.4",
     "@google/genai": "latest",
     "@types/bun": "latest",
+    "ai": "^6.0.105",
     "lefthook": "^2.1.1"
   },
   "peerDependencies": {
