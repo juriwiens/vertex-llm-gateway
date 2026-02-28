@@ -1,11 +1,12 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { GoogleGenAI } from "@google/genai";
 
-// Integration tests require a running gateway and valid Vertex AI credentials.
-// Run with: INTEGRATION=1 VERTEX_GATEWAY_KEY=<key> bun test tests/integration
-const INTEGRATION = process.env.INTEGRATION === "1";
+// Integration tests run by default when VERTEX_GATEWAY_KEY is set.
+// Force-skip with: INTEGRATION=0 bun test
 const GATEWAY_URL = process.env.GATEWAY_URL ?? "http://localhost:18443";
 const VERTEX_GATEWAY_KEY = process.env.VERTEX_GATEWAY_KEY ?? "";
+const INTEGRATION =
+  process.env.INTEGRATION !== "0" && VERTEX_GATEWAY_KEY !== "";
 
 (INTEGRATION ? describe : describe.skip)(
   "Google GenAI SDK → gateway → Vertex AI",
