@@ -25,8 +25,18 @@ export function createGatewayServer(config: GatewayConfig) {
       // Health check — static Response for zero-allocation dispatch
       "/health": Response.json({ status: "ok" }),
 
-      // Anthropic: POST /anthropic/v1/messages (Anthropic SDK)
-      // Anthropic: POST /anthropic/messages (OpenCode)
+      // Two routes for the Anthropic Messages API, because the two common
+      // SDKs construct URLs differently from the same ANTHROPIC_BASE_URL:
+      //
+      //   @anthropic-ai/sdk (official):  baseURL + "/v1/messages"
+      //     → expects ANTHROPIC_BASE_URL = "…/anthropic"
+      //     → sends POST /anthropic/v1/messages
+      //
+      //   @ai-sdk/anthropic (Vercel AI SDK, used by OpenCode):
+      //     → expects ANTHROPIC_BASE_URL = "…/anthropic/v1" (already includes /v1)
+      //     → sends POST /anthropic/messages
+      //
+      // Both routes delegate to the same handler.
       "/anthropic/v1/messages": (req) => {
         if (req.method !== "POST")
           return Response.json(
