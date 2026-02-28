@@ -20,6 +20,7 @@ export async function handleGeminiGenerateContent(
   const apiKey =
     req.headers.get("x-goog-api-key") ?? url.searchParams.get("key");
   if (!apiKey || apiKey !== config.gatewayKey) {
+    console.warn("[gemini] 401 – x-goog-api-key / ?key= missing or wrong");
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -54,6 +55,7 @@ export async function handleGeminiGenerateContent(
   try {
     token = await config.getToken();
   } catch (err) {
+    console.error("[gemini] ADC token fetch failed:", (err as Error).message);
     return Response.json(
       { error: `Authentication failed: ${(err as Error).message}` },
       { status: 502 },
@@ -71,9 +73,21 @@ export async function handleGeminiGenerateContent(
       body: req.body,
     });
   } catch (err) {
+    console.error(
+      "[gemini] Vertex request failed:",
+      (err as Error).message,
+      "→",
+      vertexUrl,
+    );
     return Response.json(
       { error: `Vertex AI request failed: ${(err as Error).message}` },
       { status: 502 },
+    );
+  }
+
+  if (!vertexResponse.ok) {
+    console.warn(
+      `[gemini] Vertex returned ${vertexResponse.status} → ${vertexUrl}`,
     );
   }
 

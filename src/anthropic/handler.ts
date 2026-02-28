@@ -15,6 +15,7 @@ export async function handleAnthropicMessages(
 ): Promise<Response> {
   const apiKey = req.headers.get("x-api-key");
   if (!apiKey || apiKey !== config.gatewayKey) {
+    console.warn("[anthropic] 401 – x-api-key missing or wrong");
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -47,6 +48,10 @@ export async function handleAnthropicMessages(
   try {
     token = await config.getToken();
   } catch (err) {
+    console.error(
+      "[anthropic] ADC token fetch failed:",
+      (err as Error).message,
+    );
     return Response.json(
       { error: `Authentication failed: ${(err as Error).message}` },
       { status: 502 },
@@ -64,9 +69,21 @@ export async function handleAnthropicMessages(
       body: JSON.stringify(vertexBody),
     });
   } catch (err) {
+    console.error(
+      "[anthropic] Vertex request failed:",
+      (err as Error).message,
+      "→",
+      vertexUrl,
+    );
     return Response.json(
       { error: `Vertex AI request failed: ${(err as Error).message}` },
       { status: 502 },
+    );
+  }
+
+  if (!vertexResponse.ok) {
+    console.warn(
+      `[anthropic] Vertex returned ${vertexResponse.status} → ${vertexUrl}`,
     );
   }
 

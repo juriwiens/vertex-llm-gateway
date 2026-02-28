@@ -79,7 +79,8 @@ export function createGatewayServer(config: GatewayConfig) {
     },
 
     // Fallback for all unmatched routes
-    fetch() {
+    fetch(req) {
+      console.warn(`[gateway] 404 ${req.method} ${new URL(req.url).pathname}`);
       return Response.json({ error: "Not found" }, { status: 404 });
     },
   });
