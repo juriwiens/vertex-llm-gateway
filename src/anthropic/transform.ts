@@ -1,9 +1,16 @@
 const ANTHROPIC_VERSION = "vertex-2023-10-16";
 
+// Fields supported by the direct Anthropic API but not by the Vertex AI
+// Anthropic endpoint. Strip them before forwarding.
+const UNSUPPORTED_BY_VERTEX = new Set([
+  "context_management", // Claude Code context-window management (Anthropic-only beta)
+]);
+
 export function toVertexRequest(
   anthropicBody: Record<string, unknown>,
 ): Record<string, unknown> {
   const { model: _, ...rest } = anthropicBody;
+  for (const key of UNSUPPORTED_BY_VERTEX) delete rest[key];
   return {
     anthropic_version: ANTHROPIC_VERSION,
     ...rest,
