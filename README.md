@@ -41,7 +41,10 @@ x-goog-api-key: <gateway-key>          - rewrites URL
 ### Prerequisites
 
 - [Bun](https://bun.sh) runtime
-- Google Cloud ADC configured (`gcloud auth application-default login`)
+- Google Cloud credentials — any of the following:
+  - **ADC (recommended for local dev):** `gcloud auth application-default login`
+  - **Service Account:** set `GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json`
+  - **Hosted environment** (GCE, Cloud Run, …): credentials are picked up automatically from the metadata server
 - A GCP project with the Vertex AI API enabled and model access for Claude and/or Gemini
 
 ### Install and run
@@ -62,8 +65,11 @@ The gateway listens on port **18443** by default (override with `GATEWAY_PORT`).
 | `VERTEX_GATEWAY_KEY` | yes | — | Secret key clients must send |
 | `VERTEX_LOCATION` | no | `europe-west1` | Vertex AI region |
 | `GATEWAY_PORT` | no | `18443` | Port to listen on |
+| `GOOGLE_APPLICATION_CREDENTIALS` | no | — | Path to a service account JSON key file |
 
 \* One of `VERTEX_PROJECT` or `GOOGLE_CLOUD_PROJECT` must be set.
+
+The gateway uses `google-auth-library` which follows the standard [ADC lookup chain](https://github.com/googleapis/google-auth-library-nodejs#choosing-the-correct-credential-type-automatically): `GOOGLE_APPLICATION_CREDENTIALS` → gcloud user credentials → GCP metadata server. No code changes are needed to switch between credential types.
 
 ### Run as macOS LaunchAgent
 
