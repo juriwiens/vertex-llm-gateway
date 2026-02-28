@@ -250,6 +250,60 @@ describe("gateway server", () => {
 
       expect(response.status).toBe(429);
     });
+
+    test("returns 502 when token fetch fails", async () => {
+      const server502 = createGatewayServer({
+        ...TEST_CONFIG,
+        getToken: () => Promise.reject(new Error("ADC failed")),
+        port: 0,
+      });
+      try {
+        const response = await fetch(
+          `http://localhost:${server502.port}/anthropic/v1/messages`,
+          {
+            method: "POST",
+            headers: AUTH_HEADERS,
+            body: JSON.stringify({
+              model: "claude-opus-4-6",
+              messages: [{ role: "user", content: "Hi" }],
+              max_tokens: 10,
+            }),
+          },
+        );
+
+        expect(response.status).toBe(502);
+        const body = (await response.json()) as { error: string };
+        expect(body.error).toContain("Authentication failed");
+      } finally {
+        server502.stop(true);
+      }
+    });
+
+    test("returns 502 when Vertex network request fails", async () => {
+      globalThis.fetch = (async (
+        input: string | Request | URL,
+        init?: RequestInit,
+      ) => {
+        if (typeof input === "string" && input.includes("aiplatform")) {
+          throw new Error("Connection refused");
+        }
+        return originalFetch(input, init);
+      }) as typeof fetch;
+
+      const response = await fetch(`${baseUrl}/anthropic/v1/messages`, {
+        method: "POST",
+        headers: AUTH_HEADERS,
+        body: JSON.stringify({
+          model: "claude-opus-4-6",
+          messages: [{ role: "user", content: "Hi" }],
+          max_tokens: 10,
+        }),
+      });
+
+      expect(response.status).toBe(502);
+      const body = (await response.json()) as { error: string };
+      expect(body.error).toContain("Vertex AI request failed");
+    });
   });
 
   describe("POST /gemini/v1beta/models/:model::method", () => {
@@ -381,6 +435,90 @@ describe("gateway server", () => {
       );
 
       expect(capturedUrl).toContain(":streamGenerateContent");
+    });
+
+    test("forwards Vertex AI error status codes", async () => {
+      globalThis.fetch = (async (
+        input: string | Request | URL,
+        init?: RequestInit,
+      ) => {
+        if (typeof input === "string" && input.includes("aiplatform")) {
+          return new Response(
+            JSON.stringify({ error: { message: "Rate limited" } }),
+            { status: 429, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        return originalFetch(input, init);
+      }) as typeof fetch;
+
+      const response = await fetch(
+        `${baseUrl}/gemini/v1beta/models/gemini-2.5-flash-lite:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": "test-gateway-key",
+          },
+          body: JSON.stringify({ contents: [{ parts: [{ text: "Hi" }] }] }),
+        },
+      );
+
+      expect(response.status).toBe(429);
+    });
+
+    test("returns 502 when token fetch fails", async () => {
+      const server502 = createGatewayServer({
+        ...TEST_CONFIG,
+        getToken: () => Promise.reject(new Error("ADC failed")),
+        port: 0,
+      });
+      try {
+        const response = await fetch(
+          `http://localhost:${server502.port}/gemini/v1beta/models/gemini-2.5-flash-lite:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": "test-gateway-key",
+            },
+            body: JSON.stringify({ contents: [{ parts: [{ text: "Hi" }] }] }),
+          },
+        );
+
+        expect(response.status).toBe(502);
+        const body = (await response.json()) as { error: string };
+        expect(body.error).toContain("Authentication failed");
+      } finally {
+        server502.stop(true);
+      }
+    });
+
+    test("returns 502 when Vertex network request fails", async () => {
+      globalThis.fetch = (async (
+        input: string | Request | URL,
+        init?: RequestInit,
+      ) => {
+        if (typeof input === "string" && input.includes("aiplatform")) {
+          throw new Error("Connection refused");
+        }
+        return originalFetch(input, init);
+      }) as typeof fetch;
+
+      const response = await fetch(
+        `${baseUrl}/gemini/v1beta/models/gemini-2.5-flash-lite:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": "test-gateway-key",
+          },
+          body: JSON.stringify({ contents: [{ parts: [{ text: "Hi" }] }] }),
+        },
+      );
+
+      expect(response.status).toBe(502);
+      const body = (await response.json()) as { error: string };
+      expect(body.error).toContain("Vertex AI request failed");
     });
 
     test("returns 404 for unknown Gemini methods", async () => {
