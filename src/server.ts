@@ -25,8 +25,17 @@ export function createGatewayServer(config: GatewayConfig) {
       // Health check — static Response for zero-allocation dispatch
       "/health": Response.json({ status: "ok" }),
 
-      // Anthropic: POST /anthropic/v1/messages
+      // Anthropic: POST /anthropic/v1/messages (Anthropic SDK)
+      // Anthropic: POST /anthropic/messages (OpenCode)
       "/anthropic/v1/messages": (req) => {
+        if (req.method !== "POST")
+          return Response.json(
+            { error: "Method not allowed" },
+            { status: 405 },
+          );
+        return handleAnthropicMessages(req, config);
+      },
+      "/anthropic/messages": (req) => {
         if (req.method !== "POST")
           return Response.json(
             { error: "Method not allowed" },

@@ -400,6 +400,61 @@ describe("gateway server", () => {
     });
   });
 
+  // OpenCode sends to ANTHROPIC_BASE_URL + "/messages" (no /v1 prefix),
+  // so the gateway exposes /anthropic/messages as an alias.
+  describe("POST /anthropic/messages (OpenCode alias)", () => {
+    test("returns 401 when x-api-key is missing", async () => {
+      const response = await fetch(`${baseUrl}/anthropic/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 10 }),
+      });
+
+      expect(response.status).toBe(401);
+    });
+
+    test("forwards request to Vertex AI same as /v1/messages", async () => {
+      let capturedUrl = "";
+
+      globalThis.fetch = (async (
+        input: string | Request | URL,
+        init?: RequestInit,
+      ) => {
+        if (typeof input === "string" && input.includes("aiplatform")) {
+          capturedUrl = input;
+          return new Response(JSON.stringify({ type: "message" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return originalFetch(input, init);
+      }) as typeof fetch;
+
+      const response = await fetch(`${baseUrl}/anthropic/messages`, {
+        method: "POST",
+        headers: AUTH_HEADERS,
+        body: JSON.stringify({
+          model: "claude-opus-4-6",
+          messages: [{ role: "user", content: "Hello" }],
+          max_tokens: 100,
+        }),
+      });
+
+      expect(response.status).toBe(200);
+      expect(capturedUrl).toBe(
+        "https://europe-west1-aiplatform.googleapis.com/v1/projects/test-project/locations/europe-west1/publishers/anthropic/models/claude-opus-4-6:rawPredict",
+      );
+    });
+
+    test("returns 405 for non-POST methods", async () => {
+      const response = await fetch(`${baseUrl}/anthropic/messages`, {
+        method: "GET",
+      });
+
+      expect(response.status).toBe(405);
+    });
+  });
+
   describe("unknown routes", () => {
     test("returns 404 for unknown paths", async () => {
       const response = await fetch(`${baseUrl}/unknown`);
