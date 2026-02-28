@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@ai-sdk/anthropic": "^3.0.50",
+    "@ai-sdk/google": "^3.0.34",
     "@anthropic-ai/sdk": "latest",
     "@biomejs/biome": "^2.4.4",
     "@google/genai": "latest",
