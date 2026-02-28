@@ -8,7 +8,12 @@
   "scripts": {
     "start": "bun run src/server.ts",
     "test": "bun test src",
-    "test:integration": "INTEGRATION=1 bun test tests/integration"
+    "test:integration": "INTEGRATION=1 bun test tests/integration",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write ."
   },
   "dependencies": {
     "google-auth-library": "^10.5.0"
