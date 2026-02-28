@@ -1,5 +1,6 @@
 {
   "gemini-3-flash-preview": "global",
   "gemini-3.1-pro-preview": "global",
-  "gemini-3.1-pro-preview-customtools": "global"
+  "gemini-3.1-pro-preview-customtools": "global",
+  "gemini-3.1-flash-image-preview": "global"
 }
