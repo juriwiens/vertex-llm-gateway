@@ -87,8 +87,7 @@ export function createGatewayServer(config: GatewayConfig) {
 
 // --- Main entrypoint (only when run directly) ---
 
-const isMainModule = process.argv[1]?.endsWith("server.ts");
-if (isMainModule) {
+if (import.meta.main) {
   const project =
     process.env.VERTEX_PROJECT ?? process.env.GOOGLE_CLOUD_PROJECT;
   const location = process.env.VERTEX_LOCATION ?? "europe-west1";
