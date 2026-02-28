@@ -45,6 +45,16 @@ const VERTEX_GATEWAY_KEY = process.env.VERTEX_GATEWAY_KEY ?? "";
       expect(fullText.length).toBeGreaterThan(0);
     });
 
+    test("routes preview model to global region", async () => {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: "Reply with the single word: hello",
+      });
+
+      expect(response.text).toBeTruthy();
+      expect(response.text?.length).toBeGreaterThan(0);
+    });
+
     test("returns an error for wrong api key", async () => {
       const badAi = new GoogleGenAI({
         apiKey: "wrong-key",

@@ -12,6 +12,9 @@ const TEST_CONFIG: GatewayConfig = {
   overrides: {
     "claude-haiku-4-5": "claude-haiku-4-5@20251001",
   },
+  geminiLocationOverrides: {
+    "gemini-3-flash-preview": "global",
+  },
   getToken: () => Promise.resolve("ya29.test-token"),
   gatewayKey: "test-gateway-key",
   port: 0, // random available port

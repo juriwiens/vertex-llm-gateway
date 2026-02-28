@@ -7,6 +7,7 @@ export interface GatewayConfig {
   project: string;
   location: string;
   overrides: Record<string, string>;
+  geminiLocationOverrides: Record<string, string>;
   getToken: () => Promise<string>;
   gatewayKey: string;
   port: number;
@@ -51,7 +52,10 @@ export function createGatewayServer(config: GatewayConfig) {
         const method = modelMethod.slice(colon + 1);
         if (!GEMINI_METHODS.has(method))
           return Response.json({ error: "Not found" }, { status: 404 });
-        return handleGeminiGenerateContent(req, model, method, config);
+        return handleGeminiGenerateContent(req, model, method, {
+          ...config,
+          locationOverrides: config.geminiLocationOverrides,
+        });
       },
     },
 
@@ -96,6 +100,16 @@ if (isMainModule) {
     console.warn("No model-overrides.json found, using pass-through only");
   }
 
+  let geminiLocationOverrides: Record<string, string> = {};
+  try {
+    const locationsFile = Bun.file(
+      new URL("../gemini-locations.json", import.meta.url),
+    );
+    geminiLocationOverrides = await locationsFile.json();
+  } catch {
+    // Optional file — no warning needed
+  }
+
   const auth = new GoogleAuth({
     scopes: ["https://www.googleapis.com/auth/cloud-platform"],
   });
@@ -110,6 +124,7 @@ if (isMainModule) {
     project,
     location,
     overrides,
+    geminiLocationOverrides,
     getToken: () => tokenProvider.getToken(),
     gatewayKey,
     port,

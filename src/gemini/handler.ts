@@ -1,8 +1,10 @@
+import { resolveGeminiLocation } from "./locations.ts";
 import { buildGeminiVertexUrl } from "./transform.ts";
 
 export interface GeminiHandlerConfig {
   project: string;
   location: string;
+  locationOverrides: Record<string, string>;
   getToken: () => Promise<string>;
   gatewayKey: string;
 }
@@ -29,9 +31,15 @@ export async function handleGeminiGenerateContent(
   const vertexMethod =
     method === "generateContent" && altSse ? "streamGenerateContent" : method;
 
+  const location = resolveGeminiLocation(
+    model,
+    config.locationOverrides,
+    config.location,
+  );
+
   let vertexUrl = buildGeminiVertexUrl({
     project: config.project,
-    location: config.location,
+    location,
     model,
     method: vertexMethod,
   });
