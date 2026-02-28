@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 import { GoogleGenAI } from "@google/genai";
 
 // Integration tests require a running gateway and valid Vertex AI credentials.
@@ -10,9 +10,15 @@ const VERTEX_GATEWAY_KEY = process.env.VERTEX_GATEWAY_KEY ?? "";
 (INTEGRATION ? describe : describe.skip)(
   "Google GenAI SDK → gateway → Vertex AI",
   () => {
-    const ai = new GoogleGenAI({
-      apiKey: VERTEX_GATEWAY_KEY,
-      httpOptions: { baseUrl: `${GATEWAY_URL}/gemini` },
+    // Initialised in beforeAll so the constructor only runs when tests are
+    // actually executed — not during collection/skip, where VERTEX_GATEWAY_KEY
+    // would be empty and GoogleGenAI would throw.
+    let ai: GoogleGenAI;
+    beforeAll(() => {
+      ai = new GoogleGenAI({
+        apiKey: VERTEX_GATEWAY_KEY,
+        httpOptions: { baseUrl: `${GATEWAY_URL}/gemini` },
+      });
     });
 
     test("generates a non-streaming response", async () => {
