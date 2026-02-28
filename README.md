@@ -67,29 +67,49 @@ The gateway listens on port **18443** by default (override with `GATEWAY_PORT`).
 
 ### Run as macOS LaunchAgent
 
-To start the gateway automatically on login, symlink the plist from the [dotfiles repo](https://github.com/juriwiens/dotfiles):
+Create `~/Library/LaunchAgents/com.vertex-llm-gateway.plist`:
 
-```bash
-ln -s ~/.dotfiles/home/LaunchAgents/com.vertex-llm-proxy.plist \
-      ~/Library/LaunchAgents/com.vertex-llm-proxy.plist
-
-launchctl load ~/Library/LaunchAgents/com.vertex-llm-proxy.plist
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.vertex-llm-gateway</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/path/to/.bun/bin/bun</string>
+    <string>run</string>
+    <string>/path/to/vertex-llm-gateway/src/server.ts</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>VERTEX_PROJECT</key>
+    <string>my-gcp-project</string>
+    <key>VERTEX_GATEWAY_KEY</key>
+    <string>my-secret-key</string>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/me/Library/Logs/vertex-llm-gateway.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/me/Library/Logs/vertex-llm-gateway.log</string>
+  <key>KeepAlive</key>
+  <true/>
+  <key>RunAtLoad</key>
+  <true/>
+</dict>
+</plist>
 ```
 
-The LaunchAgent is configured with `KeepAlive: true` (auto-restart on crash) and logs to `~/Library/Logs/vertex-llm-proxy.log`.
-
 ```bash
-# Check status
-launchctl list | grep vertex-llm
+# Start
+launchctl load ~/Library/LaunchAgents/com.vertex-llm-gateway.plist
 
 # Stop
-launchctl unload ~/Library/LaunchAgents/com.vertex-llm-proxy.plist
-
-# Start
-launchctl load ~/Library/LaunchAgents/com.vertex-llm-proxy.plist
+launchctl unload ~/Library/LaunchAgents/com.vertex-llm-gateway.plist
 
 # View logs
-tail -f ~/Library/Logs/vertex-llm-proxy.log
+tail -f ~/Library/Logs/vertex-llm-gateway.log
 ```
 
 ## Usage
