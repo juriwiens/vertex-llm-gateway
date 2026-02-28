@@ -16,7 +16,10 @@ export class TokenProvider {
   private readonly fetchToken: FetchTokenFn;
   private readonly options: TokenProviderOptions;
 
-  constructor(fetchToken: FetchTokenFn, options?: Partial<TokenProviderOptions>) {
+  constructor(
+    fetchToken: FetchTokenFn,
+    options?: Partial<TokenProviderOptions>,
+  ) {
     this.fetchToken = fetchToken;
     this.options = { ...DEFAULT_OPTIONS, ...options };
   }

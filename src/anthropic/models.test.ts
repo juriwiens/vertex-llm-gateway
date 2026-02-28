@@ -1,5 +1,5 @@
-import { describe, test, expect } from "bun:test";
-import { resolveVertexModelId } from "./models";
+import { describe, expect, test } from "bun:test";
+import { resolveVertexModelId } from "./models.ts";
 
 describe("resolveVertexModelId", () => {
   test("returns override when model ID has an explicit mapping", () => {

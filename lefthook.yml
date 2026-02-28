@@ -1,0 +1,5 @@
+pre-commit:
+  jobs:
+    - name: biome
+      glob: "*.{ts,json}"
+      run: ~/.bun/bin/bunx biome check --write --unsafe {staged_files} && git add {staged_files}

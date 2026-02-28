@@ -1,19 +1,24 @@
 {
-  "name": "vertex-llm-proxy",
+  "name": "vertex-llm-gateway",
   "version": "1.0.0",
   "private": true,
-  "description": "Anthropic-API-compatible reverse proxy that authenticates to Vertex AI using host ADC",
-  "module": "server.ts",
+  "description": "Local API gateway that accepts Anthropic and Gemini API key requests and forwards them to Vertex AI using host ADC",
+  "module": "src/server.ts",
   "type": "module",
   "scripts": {
-    "start": "bun run server.ts",
-    "test": "bun test"
+    "start": "bun run src/server.ts",
+    "test": "bun test src",
+    "test:integration": "INTEGRATION=1 bun test tests/integration"
   },
   "dependencies": {
     "google-auth-library": "^10.5.0"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@anthropic-ai/sdk": "latest",
+    "@biomejs/biome": "^2.4.4",
+    "@google/genai": "latest",
+    "@types/bun": "latest",
+    "lefthook": "^2.1.1"
   },
   "peerDependencies": {
     "typescript": "^5"

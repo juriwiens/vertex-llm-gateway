@@ -1,5 +1,5 @@
-import { describe, test, expect, mock, beforeEach } from "bun:test";
-import { TokenProvider } from "./auth";
+import { describe, expect, mock, test } from "bun:test";
+import { TokenProvider } from "./auth.ts";
 
 describe("TokenProvider", () => {
   test("fetches a token on first call", async () => {

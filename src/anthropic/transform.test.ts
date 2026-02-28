@@ -1,5 +1,5 @@
-import { describe, test, expect } from "bun:test";
-import { toVertexRequest, buildVertexUrl } from "./transform";
+import { describe, expect, test } from "bun:test";
+import { buildVertexUrl, toVertexRequest } from "./transform.ts";
 
 describe("toVertexRequest", () => {
   test("removes model from body and adds anthropic_version", () => {
