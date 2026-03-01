@@ -6,7 +6,7 @@ export interface GeminiHandlerConfig {
   location: string;
   locationOverrides: Record<string, string>;
   getToken: () => Promise<string>;
-  gatewayKey: string;
+  validateClient: (apiKey: string) => string | null;
 }
 
 export async function handleGeminiGenerateContent(
@@ -19,7 +19,9 @@ export async function handleGeminiGenerateContent(
   const url = new URL(req.url);
   const apiKey =
     req.headers.get("x-goog-api-key") ?? url.searchParams.get("key");
-  if (!apiKey || apiKey !== config.gatewayKey) {
+  const clientName = apiKey ? config.validateClient(apiKey) : null;
+
+  if (!clientName) {
     console.warn("[gemini] 401 – x-goog-api-key / ?key= missing or wrong");
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
