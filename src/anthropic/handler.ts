@@ -6,7 +6,7 @@ export interface AnthropicHandlerConfig {
   location: string;
   overrides: Record<string, string>;
   getToken: () => Promise<string>;
-  gatewayKey: string;
+  validateClient: (apiKey: string) => string | null;
 }
 
 export async function handleAnthropicMessages(
@@ -14,7 +14,9 @@ export async function handleAnthropicMessages(
   config: AnthropicHandlerConfig,
 ): Promise<Response> {
   const apiKey = req.headers.get("x-api-key");
-  if (!apiKey || apiKey !== config.gatewayKey) {
+  const clientName = apiKey ? config.validateClient(apiKey) : null;
+  
+  if (!clientName) {
     console.warn("[anthropic] 401 – x-api-key missing or wrong");
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
