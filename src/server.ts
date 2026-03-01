@@ -2,6 +2,7 @@ import { GoogleAuth } from "google-auth-library";
 import { handleAnthropicMessages } from "./anthropic/handler.ts";
 import { TokenProvider } from "./auth.ts";
 import { handleGeminiGenerateContent } from "./gemini/handler.ts";
+import { ClientManager } from "./clients.ts";
 
 export interface GatewayConfig {
   project: string;
@@ -9,7 +10,7 @@ export interface GatewayConfig {
   overrides: Record<string, string>;
   geminiLocationOverrides: Record<string, string>;
   getToken: () => Promise<string>;
-  gatewayKey: string;
+  validateClient: (apiKey: string) => string | null;
   port: number;
 }
 
@@ -104,11 +105,6 @@ if (import.meta.main) {
     process.exit(1);
   }
 
-  if (!gatewayKey) {
-    console.error("Error: Set VERTEX_GATEWAY_KEY environment variable");
-    process.exit(1);
-  }
-
   let overrides: Record<string, string> = {};
   try {
     const overridesFile = Bun.file(
@@ -139,13 +135,18 @@ if (import.meta.main) {
     return token;
   });
 
+  const clientsJsonPath =
+    process.env.CLIENTS_FILE_PATH ??
+    new URL("../clients.json", import.meta.url).pathname;
+  const clientManager = await ClientManager.create(clientsJsonPath, gatewayKey);
+
   const server = createGatewayServer({
     project,
     location,
     overrides,
     geminiLocationOverrides,
     getToken: () => tokenProvider.getToken(),
-    gatewayKey,
+    validateClient: (apiKey: string) => clientManager.validateClient(apiKey),
     port,
   });
 

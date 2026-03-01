@@ -16,7 +16,7 @@ const TEST_CONFIG: GatewayConfig = {
     "gemini-3-flash-preview": "global",
   },
   getToken: () => Promise.resolve("ya29.test-token"),
-  gatewayKey: "test-gateway-key",
+  validateClient: (key) => key === "test-gateway-key" ? "test-client" : null,
   port: 0, // random available port
 };
 
