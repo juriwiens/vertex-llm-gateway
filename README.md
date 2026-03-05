@@ -10,6 +10,7 @@ Many applications only support API-key-based LLM APIs (Anthropic, Gemini). This 
 - **ADC auth on the way out** — the gateway authenticates to Vertex AI using host credentials; no tokens or service account keys leave the machine
 - **API translation** — transforms consumer API request formats to their Vertex AI equivalents
 - **Provider routing** — a path prefix (`/anthropic`, `/gemini`) determines which backend is used
+- **Safe for agent sandboxing** — AI agents (in Docker, VMs, or other sandboxes) only receive a local gateway key. If an agent leaks it — through prompt injection, tool misuse, or logs — an attacker gains nothing: the key only works against `localhost` and carries no GCP permissions. The real cloud credentials never leave the host.
 
 ## How it works
 
@@ -153,14 +154,16 @@ const response = await ai.models.generateContent({
 });
 ```
 
-### Docker Sandboxes (Anthropic agents)
+### Docker / sandbox environments
+
+When running AI agents in sandboxed environments (Docker, VMs, etc.), the gateway acts as a security boundary: the sandbox only needs a gateway key, never real cloud credentials.
 
 ```dockerfile
 ENV ANTHROPIC_API_KEY=my-secret-key
 ENV ANTHROPIC_BASE_URL=http://host.docker.internal:18443/anthropic
 ```
 
-The agent inside the container uses the standard Anthropic SDK — it does not know it's talking to Vertex AI.
+The agent inside the container uses the standard Anthropic SDK — it does not know it's talking to Vertex AI. If the gateway key is leaked (e.g. the agent accidentally prints it, a prompt injection extracts it, or it ends up in logs), the blast radius is minimal: the key is only valid against `localhost` and gives no access to GCP APIs, billing, or other cloud resources.
 
 ## Request transformation
 
